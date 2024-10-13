@@ -33,7 +33,7 @@ GET {{host}}/investments
 
 GET {{host}}/investments/{{createdInvestmentId}}
 
-### Read Investments by invalid id
+### Read Investments with invalid id
 
 GET {{host}}/investments/a
 
