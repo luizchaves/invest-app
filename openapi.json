@@ -1,0 +1,287 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Investments API",
+    "version": "1.0.0",
+    "description": "API for managing investments"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Local server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Investments",
+      "description": "Investments management"
+    }
+  ],
+  "paths": {
+    "/investments": {
+      "post": {
+        "tags": ["Investments"],
+        "summary": "Create a new investment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvestmentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Investment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Investment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error when passing parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Error when passing parameters"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Investments"],
+        "summary": "Get all investments",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string",
+              "example": "Selic"
+            },
+            "required": false,
+            "description": "Filter investments by name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of investments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "name": { "type": "string" },
+                      "value": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investments/{investmentId}": {
+      "get": {
+        "tags": ["Investments"],
+        "summary": "Get investment by ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investmentId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+            },
+            "description": "ID of the investment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Investment found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Investment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Investment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Investment not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Investments"],
+        "summary": "Update an investment by ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investmentId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+            },
+            "description": "ID of the investment"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvestmentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Investment updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentBody"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error when passing parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Error when passing parameters"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Investment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Investment not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Investments"],
+        "summary": "Delete an investment by ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "investmentId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+            },
+            "description": "ID of the investment"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Investment deleted"
+          },
+          "404": {
+            "description": "Investment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Investment not found"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InvestmentBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tesouro Selic 2029"
+          },
+          "value": {
+            "type": "number",
+            "example": 20000
+          }
+        },
+        "required": ["name", "value"]
+      },
+      "Investment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "84783b50-db1c-4da0-ba99-862d0e500dde"
+          },
+          "name": {
+            "type": "string",
+            "example": "Tesouro Selic 2029"
+          },
+          "value": { "type": "number", "example": 20000 }
+        }
+      }
+    }
+  }
+}
