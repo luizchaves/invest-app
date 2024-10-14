@@ -23,6 +23,8 @@ server.use(
   })
 );
 
+server.use(express.static('public'));
+
 server.use('/api', router);
 
 const swaggerJson = JSON.parse(fs.readFileSync('openapi.json'));
