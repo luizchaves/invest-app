@@ -1,6 +1,9 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
+
 import { investments } from './data/investments.js';
+import { validate } from './middleware/validate.js';
 
 class HttpError extends Error {
   constructor(message, code = 400) {
@@ -11,83 +14,138 @@ class HttpError extends Error {
 
 const router = express.Router();
 
-router.post('/investments', (req, res) => {
-  const { name, value } = req.body;
+router.post(
+  '/investments',
+  validate(
+    z.object({
+      body: z.object({
+        name: z.string(),
+        value: z.number().int(),
+      }),
+    })
+  ),
+  (req, res) => {
+    const { name, value } = req.body;
 
-  if (!name || !value) {
-    throw new HttpError('Error when passing parameters');
+    if (!name || !value) {
+      throw new HttpError('Error when passing parameters');
+    }
+
+    const id = uuidv4();
+
+    const newInvestment = { name, value, id };
+
+    investments.push(newInvestment);
+
+    return res.status(201).json(newInvestment);
   }
+);
 
-  const id = uuidv4();
+router.get(
+  '/investments',
+  validate(
+    z.object({
+      query: z.object({
+        name: z.string().optional(),
+      }),
+    })
+  ),
+  (req, res) => {
+    const { name } = req.query;
 
-  const newInvestment = { name, value, id };
+    if (name) {
+      const filteredInvestments = investments.filter((investment) =>
+        investment.name.includes(name)
+      );
 
-  investments.push(newInvestment);
+      return res.json(filteredInvestments);
+    }
 
-  return res.status(201).json(newInvestment);
-});
-
-router.get('/investments', (req, res) => {
-  const { name } = req.query;
-
-  if (name) {
-    const filteredInvestments = investments.filter((investment) =>
-      investment.name.includes(name)
-    );
-
-    return res.json(filteredInvestments);
+    return res.json(investments);
   }
+);
 
-  return res.json(investments);
-});
+router.get(
+  '/investments/:id',
+  validate(
+    z.object({
+      params: z.object({
+        id: z.string().uuid(),
+      }),
+    })
+  ),
+  (req, res) => {
+    const id = req.params.id;
 
-router.get('/investments/:id', (req, res) => {
-  const id = req.params.id;
+    const index = investments.findIndex((investment) => investment.id === id);
 
-  const index = investments.findIndex((investment) => investment.id === id);
+    if (!investments[index]) {
+      throw new HttpError('Investment not found', 404);
+    }
 
-  if (!investments[index]) {
-    throw new HttpError('Investment not found', 404);
+    return res.json(investments[index]);
   }
+);
 
-  return res.json(investments[index]);
-});
+router.put(
+  '/investments/:id',
+  validate(
+    z.object({
+      params: z.object({
+        id: z.string().uuid(),
+      }),
+      body: z.object({
+        name: z.string(),
+        value: z.number().int(),
+      }),
+    })
+  ),
+  (req, res) => {
+    const { name, value } = req.body;
 
-router.put('/investments/:id', (req, res) => {
-  const { name, value } = req.body;
+    const { id } = req.params;
 
-  const { id } = req.params;
+    if (!name || !value) {
+      throw new HttpError('Error when passing parameters');
+    }
 
-  if (!name || !value) {
-    throw new HttpError('Error when passing parameters');
+    const newInvestment = { name, value, id };
+
+    const index = investments.findIndex((investment) => investment.id === id);
+
+    if (!investments[index]) {
+      throw new HttpError('Investment not found', 404);
+    }
+
+    investments[index] = newInvestment;
+
+    return res.json(newInvestment);
   }
+);
 
-  const newInvestment = { name, value, id };
+router.delete(
+  '/investments/:id',
+  validate(
+    z.object({
+      params: z.object({
+        id: z.string().uuid(),
+      }),
+    })
+  ),
+  (req, res) => {
+    const { id } = req.params;
 
-  const index = investments.findIndex((investment) => investment.id === id);
+    const index = investments.findIndex((investment) => investment.id === id);
 
-  if (!investments[index]) {
-    throw new HttpError('Investment not found', 404);
+    if (!investments[index]) {
+      throw new HttpError('Investment not found', 404);
+    }
+
+    investments.splice(index, 1);
+
+    return res.sendStatus(204);
   }
-
-  investments[index] = newInvestment;
-
-  return res.json(newInvestment);
-});
-
-router.delete('/investments/:id', (req, res) => {
-  const { id } = req.params;
-
-  const index = investments.findIndex((investment) => investment.id === id);
-
-  if (!investments[index]) {
-    throw new HttpError('Investment not found', 404);
-  }
-
-  investments.splice(index, 1);
-
-  return res.sendStatus(204);
-});
+);
 
 // 404 handler
 router.use((req, res, next) => {
